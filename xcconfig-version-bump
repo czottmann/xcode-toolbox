@@ -59,4 +59,4 @@ sd --string-mode \
   "$_flag_var = $new_version" \
   $_flag_file
 
-git commit -m "[CHG] Set $_flag_var to $new_version" $_flag_file
+git commit -m "[VER] Set $_flag_var to $new_version" $_flag_file
