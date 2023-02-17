@@ -1,62 +1,71 @@
 #!/opt/homebrew/bin/fish --login
 
 argparse \
-  --exclusive "bump,set" \
-  "file=" "var=" "bump" "set=" "help" \
-  -- $argv
+    --exclusive "bump,set" \
+    "file=" "var=" bump "set=" force help \
+    -- $argv
 or return
 
 if test -n "$_flag_help"
-  echo "
+    echo "
 Sets the value for a given key in a `.xcconfig` and commits the new version to
-git.
+git. The current git branch must be `main` or `next`, in any other branch the
+use of `--force` is required.
 
 FLAGS:
   --file FILE         The `.xcconfig` file to process
   --var VERSION_KEY   The key to increment or set, e.g. CURRENT_PROJECT_VERSION
   --bump              Increments the existing value of the version key by 1
   --set NEW_VERSION   Explicitly sets the value of the version key to a value
+  --force             Ignores the branch requirements
   --help              This usage description.
 
 NOTE:
   The flags --set and --bump are mutually exclusive.
 "
-  exit 1
+    exit 1
+end
+
+set branch (git branch --show-current)
+if test "$branch" != next -a "$branch" != main -a -z "$_flag_force"
+    echo "ERROR: branch name is '$branch' and --force is not set, exiting"
+    exit 1
 end
 
 if test ! -f "$_flag_file"
-  echo "ERROR: value of --file isn't a regular file, exiting"
-  exit 1
+    echo "ERROR: value of --file isn't a regular file, exiting"
+    exit 1
 end
 
 if test -z "$_flag_var"
-  echo "ERROR: --var must be set (e.g. CURRENT_PROJECT_VERSION, MARKETING_VERSION), exiting"
-  exit 1
+    echo "ERROR: --var must be set (e.g. CURRENT_PROJECT_VERSION, MARKETING_VERSION), exiting"
+    exit 1
 end
 
 if test -z "$_flag_bump" -a -z "$_flag_set"
-  echo "ERROR: Either --bump or --set VERSION is required, exiting"
-  exit 1
+    echo "ERROR: Either --bump or --set VERSION is required, exiting"
+    exit 1
 end
+
 
 ### Incrementing the existing version with `--bump`
 if test -n "$_flag_bump"
-  string match -rq "$_flag_var = (?<old_version>\d+)" < $_flag_file
-  set new_version (math $old_version + 1)
-  echo "Incrementing $_flag_var in $_flag_file: $old_version -> $new_version"
+    string match -rq "$_flag_var = (?<old_version>\d+)" <$_flag_file
+    set new_version (math $old_version + 1)
+    echo "Incrementing $_flag_var in $_flag_file: $old_version -> $new_version"
 
-### Explicitly setting a version with `--set VERSION`
+    ### Explicitly setting a version with `--set VERSION`
 else if test -n "$_flag_set"
-  string match -rq "$_flag_var = (?<old_version>.+)" < $_flag_file
-  set new_version "$_flag_set"
-  echo "Setting $_flag_var in $_flag_file: $old_version -> $new_version"
+    string match -rq "$_flag_var = (?<old_version>.+)" <$_flag_file
+    set new_version "$_flag_set"
+    echo "Setting $_flag_var in $_flag_file: $old_version -> $new_version"
 
 end
 
 ### Set the new version
 sd --string-mode \
-  "$_flag_var = $old_version" \
-  "$_flag_var = $new_version" \
-  $_flag_file
+    "$_flag_var = $old_version" \
+    "$_flag_var = $new_version" \
+    $_flag_file
 
 git commit -m "[VER] Set $_flag_var to $new_version" $_flag_file
