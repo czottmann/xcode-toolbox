@@ -1,0 +1,58 @@
+#!/opt/homebrew/bin/fish --login
+
+# Test for empty argv
+if test -z "$argv"
+    set NO_ARGS true
+end
+
+argparse \
+    "log-folder=" "search-term=" "notification-message=" help \
+    -- $argv
+or return
+
+if test -n "$_flag_help" || test "$NO_ARGS" = true
+    echo "
+Finds the most recent `.xcactivitylog` file in the passed-in folder and checks
+it for occurrences of the passed-in marker string. If the marker is found, a
+notification is sent to the macOS notification center.
+
+FLAGS:
+  --log-folder FOLDER
+        A build logs folder, usually found in DerivedData.
+
+  --search-term MARKER
+        A ripgrep search pattern to search for.
+
+  --notification-message MESSAGE
+        The message to display in the notification.
+
+  --help
+        This usage description.
+"
+    exit 1
+end
+
+if test ! -d "$_flag_log_folder"
+    echo "ERROR: value of --log-folder isn't a regular directory, exiting"
+    exit 1
+end
+
+if test -z "$_flag_search_term"
+    echo "ERROR: --search-term must be set, exiting"
+    exit 1
+end
+
+if test -z "$_flag_notification_message"
+    echo "ERROR: --notification-message must be set, exiting"
+    exit 1
+end
+
+set LOG_FILE (ls -1t "$_flag_log_folder"/*.xcactivitylog | head -n 1)
+set OCCURRENCE_COUNT ( \
+    gunzip --stdout --suffix xcactivitylog $LOG_FILE \
+        | rg "$_flag_search_term" --count --include-zero
+    )
+
+if test $OCCURRENCE_COUNT -gt 0
+    osascript -e "display notification \"$_flag_notification_message\" with title \"Xcode\""
+end
