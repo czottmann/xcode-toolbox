@@ -8,9 +8,9 @@ or return
 
 if test -n "$_flag_help"
     echo "
-Sets the value for a given key in a `.xcconfig` and commits the new version to
-git. The current git branch must be `main` or `next`, in any other branch the
-use of `--force` is required.
+Sets the value for a given key in a `.xcconfig` file. The current git branch
+must be `main` or `next`, in any other branch the use of `--force` is 
+required.
 
 FLAGS:
   --file FILE         The `.xcconfig` file to process
@@ -28,8 +28,8 @@ end
 
 set branch (git branch --show-current)
 if test "$branch" != next -a "$branch" != main -a -z "$_flag_force"
-    echo "ERROR: branch name is '$branch' and --force is not set, exiting"
-    exit 1
+    echo "NOPE: branch name is '$branch' and --force is not set, exiting"
+    exit 0
 end
 
 if test ! -f "$_flag_file"
@@ -68,4 +68,4 @@ sd --string-mode \
     "$_flag_var = $new_version" \
     $_flag_file
 
-git commit -m "[VER] Set $_flag_var to $new_version" $_flag_file
+# git commit -m "[VER] Set $_flag_var to $new_version" $_flag_file
