@@ -8,17 +8,17 @@ Scripts to help me with my Xcode projects.  Consider all scripts tagged with
 
 ### xcactivitylog-grep-and-notify
 
-Xcode is being stupidly ignorant to "halting errors" in some build steps. For
-example, sometimes in the "Extract app intents metadata" phase of my builds, a
-"halting error" might occur, but Xcode will still report a successful build. I
-spent several hours chasing those hard-to-find issues, and finally decided to
-write a script that would notify me if a specific string or pattern is found in
-the build log.
+Xcode is stupidly ignorant of "halting errors" in some build steps. For example,
+sometimes the "Extract app intents metadata" phase of my builds will produce a
+halting error, but Xcode will still report a successful build. I spent several
+hours tracking down these hard-to-find problems, and finally decided to write a
+script that would notify me if a certain string or pattern was found in the
+build log.
 
 [`xcactivitylog-grep-and-notify`](xcactivitylog-grep-and-notify) `gunzip`s the
-most recent `. xcactivitylog` file found in a given path to `stdout`, greps for
-a specific string or pattern, and throws up a notification if said
-string/pattern is found.
+most recent `.xcactivitylog` file found in a given path to `stdout`, greps for
+a specific string or pattern, and shows a notification if said string/pattern is
+found.
 
 ```bash
 xcactivitylog-grep-and-notify \
